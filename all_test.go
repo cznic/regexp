@@ -132,219 +132,219 @@ func TestCopyMatch(t *testing.T) {
 	}
 }
 
-//TODO type ReplaceTest struct {
-//TODO 	pattern, replacement, input, output string
-//TODO }
-//TODO
-//TODO var replaceTests = []ReplaceTest{
-//TODO 	// Test empty input and/or replacement, with pattern that matches the empty string.
-//TODO 	{"", "", "", ""},
-//TODO 	{"", "x", "", "x"},
-//TODO 	{"", "", "abc", "abc"},
-//TODO 	{"", "x", "abc", "xaxbxcx"},
-//TODO
-//TODO 	// Test empty input and/or replacement, with pattern that does not match the empty string.
-//TODO 	{"b", "", "", ""},
-//TODO 	{"b", "x", "", ""},
-//TODO 	{"b", "", "abc", "ac"},
-//TODO 	{"b", "x", "abc", "axc"},
-//TODO 	{"y", "", "", ""},
-//TODO 	{"y", "x", "", ""},
-//TODO 	{"y", "", "abc", "abc"},
-//TODO 	{"y", "x", "abc", "abc"},
-//TODO
-//TODO 	// Multibyte characters -- verify that we don't try to match in the middle
-//TODO 	// of a character.
-//TODO 	{"[a-c]*", "x", "\u65e5", "x\u65e5x"},
-//TODO 	{"[^\u65e5]", "x", "abc\u65e5def", "xxx\u65e5xxx"},
-//TODO
-//TODO 	// Start and end of a string.
-//TODO 	{"^[a-c]*", "x", "abcdabc", "xdabc"},
-//TODO 	{"[a-c]*$", "x", "abcdabc", "abcdx"},
-//TODO 	{"^[a-c]*$", "x", "abcdabc", "abcdabc"},
-//TODO 	{"^[a-c]*", "x", "abc", "x"},
-//TODO 	{"[a-c]*$", "x", "abc", "x"},
-//TODO 	{"^[a-c]*$", "x", "abc", "x"},
-//TODO 	{"^[a-c]*", "x", "dabce", "xdabce"},
-//TODO 	{"[a-c]*$", "x", "dabce", "dabcex"},
-//TODO 	{"^[a-c]*$", "x", "dabce", "dabce"},
-//TODO 	{"^[a-c]*", "x", "", "x"},
-//TODO 	{"[a-c]*$", "x", "", "x"},
-//TODO 	{"^[a-c]*$", "x", "", "x"},
-//TODO
-//TODO 	{"^[a-c]+", "x", "abcdabc", "xdabc"},
-//TODO 	{"[a-c]+$", "x", "abcdabc", "abcdx"},
-//TODO 	{"^[a-c]+$", "x", "abcdabc", "abcdabc"},
-//TODO 	{"^[a-c]+", "x", "abc", "x"},
-//TODO 	{"[a-c]+$", "x", "abc", "x"},
-//TODO 	{"^[a-c]+$", "x", "abc", "x"},
-//TODO 	{"^[a-c]+", "x", "dabce", "dabce"},
-//TODO 	{"[a-c]+$", "x", "dabce", "dabce"},
-//TODO 	{"^[a-c]+$", "x", "dabce", "dabce"},
-//TODO 	{"^[a-c]+", "x", "", ""},
-//TODO 	{"[a-c]+$", "x", "", ""},
-//TODO 	{"^[a-c]+$", "x", "", ""},
-//TODO
-//TODO 	// Other cases.
-//TODO 	{"abc", "def", "abcdefg", "defdefg"},
-//TODO 	{"bc", "BC", "abcbcdcdedef", "aBCBCdcdedef"},
-//TODO 	{"abc", "", "abcdabc", "d"},
-//TODO 	{"x", "xXx", "xxxXxxx", "xXxxXxxXxXxXxxXxxXx"},
-//TODO 	{"abc", "d", "", ""},
-//TODO 	{"abc", "d", "abc", "d"},
-//TODO 	{".+", "x", "abc", "x"},
-//TODO 	{"[a-c]*", "x", "def", "xdxexfx"},
-//TODO 	{"[a-c]+", "x", "abcbcdcdedef", "xdxdedef"},
-//TODO 	{"[a-c]*", "x", "abcbcdcdedef", "xdxdxexdxexfx"},
-//TODO
-//TODO 	// Substitutions
-//TODO 	{"a+", "($0)", "banana", "b(a)n(a)n(a)"},
-//TODO 	{"a+", "(${0})", "banana", "b(a)n(a)n(a)"},
-//TODO 	{"a+", "(${0})$0", "banana", "b(a)an(a)an(a)a"},
-//TODO 	{"a+", "(${0})$0", "banana", "b(a)an(a)an(a)a"},
-//TODO 	{"hello, (.+)", "goodbye, ${1}", "hello, world", "goodbye, world"},
-//TODO 	{"hello, (.+)", "goodbye, $1x", "hello, world", "goodbye, "},
-//TODO 	{"hello, (.+)", "goodbye, ${1}x", "hello, world", "goodbye, worldx"},
-//TODO 	{"hello, (.+)", "<$0><$1><$2><$3>", "hello, world", "<hello, world><world><><>"},
-//TODO 	{"hello, (?P<noun>.+)", "goodbye, $noun!", "hello, world", "goodbye, world!"},
-//TODO 	{"hello, (?P<noun>.+)", "goodbye, ${noun}", "hello, world", "goodbye, world"},
-//TODO 	{"(?P<x>hi)|(?P<x>bye)", "$x$x$x", "hi", "hihihi"},
-//TODO 	{"(?P<x>hi)|(?P<x>bye)", "$x$x$x", "bye", "byebyebye"},
-//TODO 	{"(?P<x>hi)|(?P<x>bye)", "$xyz", "hi", ""},
-//TODO 	{"(?P<x>hi)|(?P<x>bye)", "${x}yz", "hi", "hiyz"},
-//TODO 	{"(?P<x>hi)|(?P<x>bye)", "hello $$x", "hi", "hello $x"},
-//TODO 	{"a+", "${oops", "aaa", "${oops"},
-//TODO 	{"a+", "$$", "aaa", "$"},
-//TODO 	{"a+", "$", "aaa", "$"},
-//TODO
-//TODO 	// Substitution when subexpression isn't found
-//TODO 	{"(x)?", "$1", "123", "123"},
-//TODO 	{"abc", "$1", "123", "123"},
-//TODO
-//TODO 	// Substitutions involving a (x){0}
-//TODO 	{"(a)(b){0}(c)", ".$1|$3.", "xacxacx", "x.a|c.x.a|c.x"},
-//TODO 	{"(a)(((b))){0}c", ".$1.", "xacxacx", "x.a.x.a.x"},
-//TODO 	{"((a(b){0}){3}){5}(h)", "y caramb$2", "say aaaaaaaaaaaaaaaah", "say ay caramba"},
-//TODO 	{"((a(b){0}){3}){5}h", "y caramb$2", "say aaaaaaaaaaaaaaaah", "say ay caramba"},
-//TODO }
-//TODO
-//TODO var replaceLiteralTests = []ReplaceTest{
-//TODO 	// Substitutions
-//TODO 	{"a+", "($0)", "banana", "b($0)n($0)n($0)"},
-//TODO 	{"a+", "(${0})", "banana", "b(${0})n(${0})n(${0})"},
-//TODO 	{"a+", "(${0})$0", "banana", "b(${0})$0n(${0})$0n(${0})$0"},
-//TODO 	{"a+", "(${0})$0", "banana", "b(${0})$0n(${0})$0n(${0})$0"},
-//TODO 	{"hello, (.+)", "goodbye, ${1}", "hello, world", "goodbye, ${1}"},
-//TODO 	{"hello, (?P<noun>.+)", "goodbye, $noun!", "hello, world", "goodbye, $noun!"},
-//TODO 	{"hello, (?P<noun>.+)", "goodbye, ${noun}", "hello, world", "goodbye, ${noun}"},
-//TODO 	{"(?P<x>hi)|(?P<x>bye)", "$x$x$x", "hi", "$x$x$x"},
-//TODO 	{"(?P<x>hi)|(?P<x>bye)", "$x$x$x", "bye", "$x$x$x"},
-//TODO 	{"(?P<x>hi)|(?P<x>bye)", "$xyz", "hi", "$xyz"},
-//TODO 	{"(?P<x>hi)|(?P<x>bye)", "${x}yz", "hi", "${x}yz"},
-//TODO 	{"(?P<x>hi)|(?P<x>bye)", "hello $$x", "hi", "hello $$x"},
-//TODO 	{"a+", "${oops", "aaa", "${oops"},
-//TODO 	{"a+", "$$", "aaa", "$$"},
-//TODO 	{"a+", "$", "aaa", "$"},
-//TODO }
-//TODO
-//TODO type ReplaceFuncTest struct {
-//TODO 	pattern       string
-//TODO 	replacement   func(string) string
-//TODO 	input, output string
-//TODO }
-//TODO
-//TODO var replaceFuncTests = []ReplaceFuncTest{
-//TODO 	{"[a-c]", func(s string) string { return "x" + s + "y" }, "defabcdef", "defxayxbyxcydef"},
-//TODO 	{"[a-c]+", func(s string) string { return "x" + s + "y" }, "defabcdef", "defxabcydef"},
-//TODO 	{"[a-c]*", func(s string) string { return "x" + s + "y" }, "defabcdef", "xydxyexyfxabcydxyexyfxy"},
-//TODO }
-//TODO
-//TODO func TestReplaceAll(t *testing.T) {
-//TODO 	for _, tc := range replaceTests {
-//TODO 		re, err := Compile(tc.pattern)
-//TODO 		if err != nil {
-//TODO 			t.Errorf("Unexpected error compiling %q: %v", tc.pattern, err)
-//TODO 			continue
-//TODO 		}
-//TODO 		actual := re.ReplaceAllString(tc.input, tc.replacement)
-//TODO 		if actual != tc.output {
-//TODO 			t.Errorf("%q.ReplaceAllString(%q,%q) = %q; want %q",
-//TODO 				tc.pattern, tc.input, tc.replacement, actual, tc.output)
-//TODO 		}
-//TODO 		// now try bytes
-//TODO 		actual = string(re.ReplaceAll([]byte(tc.input), []byte(tc.replacement)))
-//TODO 		if actual != tc.output {
-//TODO 			t.Errorf("%q.ReplaceAll(%q,%q) = %q; want %q",
-//TODO 				tc.pattern, tc.input, tc.replacement, actual, tc.output)
-//TODO 		}
-//TODO 	}
-//TODO }
-//TODO
-//TODO func TestReplaceAllLiteral(t *testing.T) {
-//TODO 	// Run ReplaceAll tests that do not have $ expansions.
-//TODO 	for _, tc := range replaceTests {
-//TODO 		if strings.Contains(tc.replacement, "$") {
-//TODO 			continue
-//TODO 		}
-//TODO 		re, err := Compile(tc.pattern)
-//TODO 		if err != nil {
-//TODO 			t.Errorf("Unexpected error compiling %q: %v", tc.pattern, err)
-//TODO 			continue
-//TODO 		}
-//TODO 		actual := re.ReplaceAllLiteralString(tc.input, tc.replacement)
-//TODO 		if actual != tc.output {
-//TODO 			t.Errorf("%q.ReplaceAllLiteralString(%q,%q) = %q; want %q",
-//TODO 				tc.pattern, tc.input, tc.replacement, actual, tc.output)
-//TODO 		}
-//TODO 		// now try bytes
-//TODO 		actual = string(re.ReplaceAllLiteral([]byte(tc.input), []byte(tc.replacement)))
-//TODO 		if actual != tc.output {
-//TODO 			t.Errorf("%q.ReplaceAllLiteral(%q,%q) = %q; want %q",
-//TODO 				tc.pattern, tc.input, tc.replacement, actual, tc.output)
-//TODO 		}
-//TODO 	}
-//TODO
-//TODO 	// Run literal-specific tests.
-//TODO 	for _, tc := range replaceLiteralTests {
-//TODO 		re, err := Compile(tc.pattern)
-//TODO 		if err != nil {
-//TODO 			t.Errorf("Unexpected error compiling %q: %v", tc.pattern, err)
-//TODO 			continue
-//TODO 		}
-//TODO 		actual := re.ReplaceAllLiteralString(tc.input, tc.replacement)
-//TODO 		if actual != tc.output {
-//TODO 			t.Errorf("%q.ReplaceAllLiteralString(%q,%q) = %q; want %q",
-//TODO 				tc.pattern, tc.input, tc.replacement, actual, tc.output)
-//TODO 		}
-//TODO 		// now try bytes
-//TODO 		actual = string(re.ReplaceAllLiteral([]byte(tc.input), []byte(tc.replacement)))
-//TODO 		if actual != tc.output {
-//TODO 			t.Errorf("%q.ReplaceAllLiteral(%q,%q) = %q; want %q",
-//TODO 				tc.pattern, tc.input, tc.replacement, actual, tc.output)
-//TODO 		}
-//TODO 	}
-//TODO }
-//TODO
-//TODO func TestReplaceAllFunc(t *testing.T) {
-//TODO 	for _, tc := range replaceFuncTests {
-//TODO 		re, err := Compile(tc.pattern)
-//TODO 		if err != nil {
-//TODO 			t.Errorf("Unexpected error compiling %q: %v", tc.pattern, err)
-//TODO 			continue
-//TODO 		}
-//TODO 		actual := re.ReplaceAllStringFunc(tc.input, tc.replacement)
-//TODO 		if actual != tc.output {
-//TODO 			t.Errorf("%q.ReplaceFunc(%q,fn) = %q; want %q",
-//TODO 				tc.pattern, tc.input, actual, tc.output)
-//TODO 		}
-//TODO 		// now try bytes
-//TODO 		actual = string(re.ReplaceAllFunc([]byte(tc.input), func(s []byte) []byte { return []byte(tc.replacement(string(s))) }))
-//TODO 		if actual != tc.output {
-//TODO 			t.Errorf("%q.ReplaceFunc(%q,fn) = %q; want %q",
-//TODO 				tc.pattern, tc.input, actual, tc.output)
-//TODO 		}
-//TODO 	}
-//TODO }
+type ReplaceTest struct {
+	pattern, replacement, input, output string
+}
+
+var replaceTests = []ReplaceTest{
+	// Test empty input and/or replacement, with pattern that matches the empty string.
+	{"", "", "", ""},
+	{"", "x", "", "x"},
+	{"", "", "abc", "abc"},
+	{"", "x", "abc", "xaxbxcx"},
+
+	// Test empty input and/or replacement, with pattern that does not match the empty string.
+	{"b", "", "", ""},
+	{"b", "x", "", ""},
+	{"b", "", "abc", "ac"},
+	{"b", "x", "abc", "axc"},
+	{"y", "", "", ""},
+	{"y", "x", "", ""},
+	{"y", "", "abc", "abc"},
+	{"y", "x", "abc", "abc"},
+
+	// Multibyte characters -- verify that we don't try to match in the middle
+	// of a character.
+	{"[a-c]*", "x", "\u65e5", "x\u65e5x"},
+	{"[^\u65e5]", "x", "abc\u65e5def", "xxx\u65e5xxx"},
+
+	// Start and end of a string.
+	{"^[a-c]*", "x", "abcdabc", "xdabc"},
+	{"[a-c]*$", "x", "abcdabc", "abcdx"},
+	{"^[a-c]*$", "x", "abcdabc", "abcdabc"},
+	{"^[a-c]*", "x", "abc", "x"},
+	{"[a-c]*$", "x", "abc", "x"},
+	{"^[a-c]*$", "x", "abc", "x"},
+	{"^[a-c]*", "x", "dabce", "xdabce"},
+	{"[a-c]*$", "x", "dabce", "dabcex"},
+	{"^[a-c]*$", "x", "dabce", "dabce"},
+	{"^[a-c]*", "x", "", "x"},
+	{"[a-c]*$", "x", "", "x"},
+	{"^[a-c]*$", "x", "", "x"},
+
+	{"^[a-c]+", "x", "abcdabc", "xdabc"},
+	{"[a-c]+$", "x", "abcdabc", "abcdx"},
+	{"^[a-c]+$", "x", "abcdabc", "abcdabc"},
+	{"^[a-c]+", "x", "abc", "x"},
+	{"[a-c]+$", "x", "abc", "x"},
+	{"^[a-c]+$", "x", "abc", "x"},
+	{"^[a-c]+", "x", "dabce", "dabce"},
+	{"[a-c]+$", "x", "dabce", "dabce"},
+	{"^[a-c]+$", "x", "dabce", "dabce"},
+	{"^[a-c]+", "x", "", ""},
+	{"[a-c]+$", "x", "", ""},
+	{"^[a-c]+$", "x", "", ""},
+
+	// Other cases.
+	{"abc", "def", "abcdefg", "defdefg"},
+	{"bc", "BC", "abcbcdcdedef", "aBCBCdcdedef"},
+	{"abc", "", "abcdabc", "d"},
+	{"x", "xXx", "xxxXxxx", "xXxxXxxXxXxXxxXxxXx"},
+	{"abc", "d", "", ""},
+	{"abc", "d", "abc", "d"},
+	{".+", "x", "abc", "x"},
+	{"[a-c]*", "x", "def", "xdxexfx"},
+	{"[a-c]+", "x", "abcbcdcdedef", "xdxdedef"},
+	{"[a-c]*", "x", "abcbcdcdedef", "xdxdxexdxexfx"},
+
+	// Substitutions
+	{"a+", "($0)", "banana", "b(a)n(a)n(a)"},
+	{"a+", "(${0})", "banana", "b(a)n(a)n(a)"},
+	{"a+", "(${0})$0", "banana", "b(a)an(a)an(a)a"},
+	{"a+", "(${0})$0", "banana", "b(a)an(a)an(a)a"},
+	{"hello, (.+)", "goodbye, ${1}", "hello, world", "goodbye, world"},
+	{"hello, (.+)", "goodbye, $1x", "hello, world", "goodbye, "},
+	{"hello, (.+)", "goodbye, ${1}x", "hello, world", "goodbye, worldx"},
+	{"hello, (.+)", "<$0><$1><$2><$3>", "hello, world", "<hello, world><world><><>"},
+	{"hello, (?P<noun>.+)", "goodbye, $noun!", "hello, world", "goodbye, world!"},
+	{"hello, (?P<noun>.+)", "goodbye, ${noun}", "hello, world", "goodbye, world"},
+	{"(?P<x>hi)|(?P<x>bye)", "$x$x$x", "hi", "hihihi"},
+	{"(?P<x>hi)|(?P<x>bye)", "$x$x$x", "bye", "byebyebye"},
+	{"(?P<x>hi)|(?P<x>bye)", "$xyz", "hi", ""},
+	{"(?P<x>hi)|(?P<x>bye)", "${x}yz", "hi", "hiyz"},
+	{"(?P<x>hi)|(?P<x>bye)", "hello $$x", "hi", "hello $x"},
+	{"a+", "${oops", "aaa", "${oops"},
+	{"a+", "$$", "aaa", "$"},
+	{"a+", "$", "aaa", "$"},
+
+	// Substitution when subexpression isn't found
+	{"(x)?", "$1", "123", "123"},
+	{"abc", "$1", "123", "123"},
+
+	// Substitutions involving a (x){0}
+	{"(a)(b){0}(c)", ".$1|$3.", "xacxacx", "x.a|c.x.a|c.x"},
+	{"(a)(((b))){0}c", ".$1.", "xacxacx", "x.a.x.a.x"},
+	{"((a(b){0}){3}){5}(h)", "y caramb$2", "say aaaaaaaaaaaaaaaah", "say ay caramba"},
+	{"((a(b){0}){3}){5}h", "y caramb$2", "say aaaaaaaaaaaaaaaah", "say ay caramba"},
+}
+
+var replaceLiteralTests = []ReplaceTest{
+	// Substitutions
+	{"a+", "($0)", "banana", "b($0)n($0)n($0)"},
+	{"a+", "(${0})", "banana", "b(${0})n(${0})n(${0})"},
+	{"a+", "(${0})$0", "banana", "b(${0})$0n(${0})$0n(${0})$0"},
+	{"a+", "(${0})$0", "banana", "b(${0})$0n(${0})$0n(${0})$0"},
+	{"hello, (.+)", "goodbye, ${1}", "hello, world", "goodbye, ${1}"},
+	{"hello, (?P<noun>.+)", "goodbye, $noun!", "hello, world", "goodbye, $noun!"},
+	{"hello, (?P<noun>.+)", "goodbye, ${noun}", "hello, world", "goodbye, ${noun}"},
+	{"(?P<x>hi)|(?P<x>bye)", "$x$x$x", "hi", "$x$x$x"},
+	{"(?P<x>hi)|(?P<x>bye)", "$x$x$x", "bye", "$x$x$x"},
+	{"(?P<x>hi)|(?P<x>bye)", "$xyz", "hi", "$xyz"},
+	{"(?P<x>hi)|(?P<x>bye)", "${x}yz", "hi", "${x}yz"},
+	{"(?P<x>hi)|(?P<x>bye)", "hello $$x", "hi", "hello $$x"},
+	{"a+", "${oops", "aaa", "${oops"},
+	{"a+", "$$", "aaa", "$$"},
+	{"a+", "$", "aaa", "$"},
+}
+
+type ReplaceFuncTest struct {
+	pattern       string
+	replacement   func(string) string
+	input, output string
+}
+
+var replaceFuncTests = []ReplaceFuncTest{
+	{"[a-c]", func(s string) string { return "x" + s + "y" }, "defabcdef", "defxayxbyxcydef"},
+	{"[a-c]+", func(s string) string { return "x" + s + "y" }, "defabcdef", "defxabcydef"},
+	{"[a-c]*", func(s string) string { return "x" + s + "y" }, "defabcdef", "xydxyexyfxabcydxyexyfxy"},
+}
+
+func TestReplaceAll(t *testing.T) {
+	for _, tc := range replaceTests {
+		re, err := Compile(tc.pattern)
+		if err != nil {
+			t.Errorf("Unexpected error compiling %q: %v", tc.pattern, err)
+			continue
+		}
+		actual := re.ReplaceAllString(tc.input, tc.replacement)
+		if actual != tc.output {
+			t.Errorf("%q.ReplaceAllString(%q,%q) = %q; want %q",
+				tc.pattern, tc.input, tc.replacement, actual, tc.output)
+		}
+		// now try bytes
+		actual = string(re.ReplaceAll([]byte(tc.input), []byte(tc.replacement)))
+		if actual != tc.output {
+			t.Errorf("%q.ReplaceAll(%q,%q) = %q; want %q",
+				tc.pattern, tc.input, tc.replacement, actual, tc.output)
+		}
+	}
+}
+
+func TestReplaceAllLiteral(t *testing.T) {
+	// Run ReplaceAll tests that do not have $ expansions.
+	for _, tc := range replaceTests {
+		if strings.Contains(tc.replacement, "$") {
+			continue
+		}
+		re, err := Compile(tc.pattern)
+		if err != nil {
+			t.Errorf("Unexpected error compiling %q: %v", tc.pattern, err)
+			continue
+		}
+		actual := re.ReplaceAllLiteralString(tc.input, tc.replacement)
+		if actual != tc.output {
+			t.Errorf("%q.ReplaceAllLiteralString(%q,%q) = %q; want %q",
+				tc.pattern, tc.input, tc.replacement, actual, tc.output)
+		}
+		// now try bytes
+		actual = string(re.ReplaceAllLiteral([]byte(tc.input), []byte(tc.replacement)))
+		if actual != tc.output {
+			t.Errorf("%q.ReplaceAllLiteral(%q,%q) = %q; want %q",
+				tc.pattern, tc.input, tc.replacement, actual, tc.output)
+		}
+	}
+
+	// Run literal-specific tests.
+	for _, tc := range replaceLiteralTests {
+		re, err := Compile(tc.pattern)
+		if err != nil {
+			t.Errorf("Unexpected error compiling %q: %v", tc.pattern, err)
+			continue
+		}
+		actual := re.ReplaceAllLiteralString(tc.input, tc.replacement)
+		if actual != tc.output {
+			t.Errorf("%q.ReplaceAllLiteralString(%q,%q) = %q; want %q",
+				tc.pattern, tc.input, tc.replacement, actual, tc.output)
+		}
+		// now try bytes
+		actual = string(re.ReplaceAllLiteral([]byte(tc.input), []byte(tc.replacement)))
+		if actual != tc.output {
+			t.Errorf("%q.ReplaceAllLiteral(%q,%q) = %q; want %q",
+				tc.pattern, tc.input, tc.replacement, actual, tc.output)
+		}
+	}
+}
+
+func TestReplaceAllFunc(t *testing.T) {
+	for _, tc := range replaceFuncTests {
+		re, err := Compile(tc.pattern)
+		if err != nil {
+			t.Errorf("Unexpected error compiling %q: %v", tc.pattern, err)
+			continue
+		}
+		actual := re.ReplaceAllStringFunc(tc.input, tc.replacement)
+		if actual != tc.output {
+			t.Errorf("%q.ReplaceFunc(%q,fn) = %q; want %q",
+				tc.pattern, tc.input, actual, tc.output)
+		}
+		// now try bytes
+		actual = string(re.ReplaceAllFunc([]byte(tc.input), func(s []byte) []byte { return []byte(tc.replacement(string(s))) }))
+		if actual != tc.output {
+			t.Errorf("%q.ReplaceFunc(%q,fn) = %q; want %q",
+				tc.pattern, tc.input, actual, tc.output)
+		}
+	}
+}
 
 type MetaTest struct {
 	pattern, output, literal string
@@ -359,18 +359,18 @@ var metaTests = []MetaTest{
 	{`!@#$%^&*()_+-=[{]}\|,<.>/?~`, `!@#\$%\^&\*\(\)_\+-=\[\{\]\}\\\|,<\.>/\?~`, `!@#`, false},
 }
 
-//TODO var literalPrefixTests = []MetaTest{
-//TODO 	// See golang.org/issue/11175.
-//TODO 	// output is unused.
-//TODO 	{`^0^0$`, ``, `0`, false},
-//TODO 	{`^0^`, ``, ``, false},
-//TODO 	{`^0$`, ``, `0`, true},
-//TODO 	{`$0^`, ``, ``, false},
-//TODO 	{`$0$`, ``, ``, false},
-//TODO 	{`^^0$$`, ``, ``, false},
-//TODO 	{`^$^$`, ``, ``, false},
-//TODO 	{`$$0^^`, ``, ``, false},
-//TODO }
+var literalPrefixTests = []MetaTest{
+	// See golang.org/issue/11175.
+	// output is unused.
+	{`^0^0$`, ``, `0`, false},
+	//TODO {`^0^`, ``, ``, false},
+	//TODO {`^0$`, ``, `0`, true},
+	{`$0^`, ``, ``, false},
+	{`$0$`, ``, ``, false},
+	//TODO {`^^0$$`, ``, ``, false},
+	{`^$^$`, ``, ``, false},
+	{`$$0^^`, ``, ``, false},
+}
 
 func TestQuoteMeta(t *testing.T) {
 	for _, tc := range metaTests {
@@ -382,39 +382,39 @@ func TestQuoteMeta(t *testing.T) {
 			continue
 		}
 
-		//TODO 		// Verify that the quoted string is in fact treated as expected
-		//TODO 		// by Compile -- i.e. that it matches the original, unquoted string.
-		//TODO 		if tc.pattern != "" {
-		//TODO 			re, err := Compile(quoted)
-		//TODO 			if err != nil {
-		//TODO 				t.Errorf("Unexpected error compiling QuoteMeta(`%s`): %v", tc.pattern, err)
-		//TODO 				continue
-		//TODO 			}
-		//TODO 			src := "abc" + tc.pattern + "def"
-		//TODO 			repl := "xyz"
-		//TODO 			replaced := re.ReplaceAllString(src, repl)
-		//TODO 			expected := "abcxyzdef"
-		//TODO 			if replaced != expected {
-		//TODO 				t.Errorf("QuoteMeta(`%s`).Replace(`%s`,`%s`) = `%s`; want `%s`",
-		//TODO 					tc.pattern, src, repl, replaced, expected)
-		//TODO 			}
-		//TODO 		}
+		// Verify that the quoted string is in fact treated as expected
+		// by Compile -- i.e. that it matches the original, unquoted string.
+		if tc.pattern != "" {
+			re, err := Compile(quoted)
+			if err != nil {
+				t.Errorf("Unexpected error compiling QuoteMeta(`%s`): %v", tc.pattern, err)
+				continue
+			}
+			src := "abc" + tc.pattern + "def"
+			repl := "xyz"
+			replaced := re.ReplaceAllString(src, repl)
+			expected := "abcxyzdef"
+			if replaced != expected {
+				t.Errorf("QuoteMeta(`%s`).Replace(`%s`,`%s`) = `%s`; want `%s`",
+					tc.pattern, src, repl, replaced, expected)
+			}
+		}
 	}
 }
 
-//TODO func TestLiteralPrefix(t *testing.T) {
-//TODO 	for _, tc := range append(metaTests, literalPrefixTests...) {
-//TODO 		// Literal method needs to scan the pattern.
-//TODO 		re := MustCompile(tc.pattern)
-//TODO 		str, complete := re.LiteralPrefix()
-//TODO 		if complete != tc.isLiteral {
-//TODO 			t.Errorf("LiteralPrefix(`%s`) = %t; want %t", tc.pattern, complete, tc.isLiteral)
-//TODO 		}
-//TODO 		if str != tc.literal {
-//TODO 			t.Errorf("LiteralPrefix(`%s`) = `%s`; want `%s`", tc.pattern, str, tc.literal)
-//TODO 		}
-//TODO 	}
-//TODO }
+func TestLiteralPrefix(t *testing.T) {
+	for _, tc := range append(metaTests, literalPrefixTests...) {
+		// Literal method needs to scan the pattern.
+		re := MustCompile(tc.pattern)
+		str, complete := re.LiteralPrefix()
+		if complete != tc.isLiteral {
+			t.Errorf("LiteralPrefix(`%s`) = %t; want %t", tc.pattern, complete, tc.isLiteral)
+		}
+		if str != tc.literal {
+			t.Errorf("LiteralPrefix(`%s`) = `%s`; want `%s`", tc.pattern, str, tc.literal)
+		}
+	}
+}
 
 type subexpCase struct {
 	input string
@@ -680,15 +680,15 @@ func BenchmarkMatchClass_InRange(b *testing.B) {
 	}
 }
 
-//TODO func BenchmarkReplaceAll(b *testing.B) {
-//TODO 	x := "abcdefghijklmnopqrstuvwxyz"
-//TODO 	b.StopTimer()
-//TODO 	re := MustCompile("[cjrw]")
-//TODO 	b.StartTimer()
-//TODO 	for i := 0; i < b.N; i++ {
-//TODO 		re.ReplaceAllString(x, "")
-//TODO 	}
-//TODO }
+func BenchmarkReplaceAll(b *testing.B) {
+	x := "abcdefghijklmnopqrstuvwxyz"
+	b.StopTimer()
+	re := MustCompile("[cjrw]")
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		re.ReplaceAllString(x, "")
+	}
+}
 
 func BenchmarkAnchoredLiteralShortNonMatch(b *testing.B) {
 	b.StopTimer()

@@ -6,6 +6,7 @@ package regexp_test
 
 import (
 	"fmt"
+
 	"github.com/cznic/regexp"
 )
 
@@ -109,43 +110,43 @@ func ExampleRegexp_FindAllStringSubmatchIndex() {
 	// []
 }
 
-//TODO func ExampleRegexp_ReplaceAllLiteralString() {
-//TODO 	re := regexp.MustCompile("a(x*)b")
-//TODO 	fmt.Println(re.ReplaceAllLiteralString("-ab-axxb-", "T"))
-//TODO 	fmt.Println(re.ReplaceAllLiteralString("-ab-axxb-", "$1"))
-//TODO 	fmt.Println(re.ReplaceAllLiteralString("-ab-axxb-", "${1}"))
-//TODO 	// Output:
-//TODO 	// -T-T-
-//TODO 	// -$1-$1-
-//TODO 	// -${1}-${1}-
-//TODO }
-//TODO
-//TODO func ExampleRegexp_ReplaceAllString() {
-//TODO 	re := regexp.MustCompile("a(x*)b")
-//TODO 	fmt.Println(re.ReplaceAllString("-ab-axxb-", "T"))
-//TODO 	fmt.Println(re.ReplaceAllString("-ab-axxb-", "$1"))
-//TODO 	fmt.Println(re.ReplaceAllString("-ab-axxb-", "$1W"))
-//TODO 	fmt.Println(re.ReplaceAllString("-ab-axxb-", "${1}W"))
-//TODO 	// Output:
-//TODO 	// -T-T-
-//TODO 	// --xx-
-//TODO 	// ---
-//TODO 	// -W-xxW-
-//TODO }
-//TODO
-//TODO func ExampleRegexp_SubexpNames() {
-//TODO 	re := regexp.MustCompile("(?P<first>[a-zA-Z]+) (?P<last>[a-zA-Z]+)")
-//TODO 	fmt.Println(re.MatchString("Alan Turing"))
-//TODO 	fmt.Printf("%q\n", re.SubexpNames())
-//TODO 	reversed := fmt.Sprintf("${%s} ${%s}", re.SubexpNames()[2], re.SubexpNames()[1])
-//TODO 	fmt.Println(reversed)
-//TODO 	fmt.Println(re.ReplaceAllString("Alan Turing", reversed))
-//TODO 	// Output:
-//TODO 	// true
-//TODO 	// ["" "first" "last"]
-//TODO 	// ${last} ${first}
-//TODO 	// Turing Alan
-//TODO }
+func ExampleRegexp_ReplaceAllLiteralString() {
+	re := regexp.MustCompile("a(x*)b")
+	fmt.Println(re.ReplaceAllLiteralString("-ab-axxb-", "T"))
+	fmt.Println(re.ReplaceAllLiteralString("-ab-axxb-", "$1"))
+	fmt.Println(re.ReplaceAllLiteralString("-ab-axxb-", "${1}"))
+	// Output:
+	// -T-T-
+	// -$1-$1-
+	// -${1}-${1}-
+}
+
+func ExampleRegexp_ReplaceAllString() {
+	re := regexp.MustCompile("a(x*)b")
+	fmt.Println(re.ReplaceAllString("-ab-axxb-", "T"))
+	fmt.Println(re.ReplaceAllString("-ab-axxb-", "$1"))
+	fmt.Println(re.ReplaceAllString("-ab-axxb-", "$1W"))
+	fmt.Println(re.ReplaceAllString("-ab-axxb-", "${1}W"))
+	// Output:
+	// -T-T-
+	// --xx-
+	// ---
+	// -W-xxW-
+}
+
+func ExampleRegexp_SubexpNames() {
+	re := regexp.MustCompile("(?P<first>[a-zA-Z]+) (?P<last>[a-zA-Z]+)")
+	fmt.Println(re.MatchString("Alan Turing"))
+	fmt.Printf("%q\n", re.SubexpNames())
+	reversed := fmt.Sprintf("${%s} ${%s}", re.SubexpNames()[2], re.SubexpNames()[1])
+	fmt.Println(reversed)
+	fmt.Println(re.ReplaceAllString("Alan Turing", reversed))
+	// Output:
+	// true
+	// ["" "first" "last"]
+	// ${last} ${first}
+	// Turing Alan
+}
 
 func ExampleRegexp_Split() {
 	a := regexp.MustCompile("a")

@@ -91,7 +91,7 @@ func (p *parser) parse() (_ *Regexp, err error) {
 	re := p.re
 	re.groups++
 	p.re = nil
-	return re.optimize(), nil
+	return re.optimize().getPrefix(), nil
 }
 
 func (p *parser) expr(capturingGroup bool) (in, out int) {
@@ -170,6 +170,7 @@ func (p *parser) factor(capturingGroup bool) (in, out int) {
 					for {
 						r := p.n()
 						if r == '>' {
+							p.n()
 							break
 						}
 

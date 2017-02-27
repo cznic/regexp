@@ -18,8 +18,10 @@ func (s *instr) patch(t int) { s.out = t }
 // safe for concurrent use by multiple goroutines.
 type Regexp struct {
 	accept     int
+	complete   bool // Prefix is the whole re.
 	groupNames []string
 	groups     int
+	prefix     string // Any match must start with this literal.
 	prog       []instr
 	regs       []int
 	src        string
@@ -50,6 +52,47 @@ func (re *Regexp) route(s int) int {
 		s = re.prog[s].out
 	}
 	return s
+}
+
+func (re *Regexp) getPrefix() *Regexp {
+	var r []rune
+loop:
+	for ip := re.start; ; {
+		switch op := re.prog[ip]; op.kind {
+		case opAccept:
+			re.prefix = string(r)
+			re.complete = true
+			return re
+		case opChar:
+			r = append(r, rune(op.arg))
+			ip = op.out
+		case
+			opNop,
+			opSave:
+			// ok
+			ip = op.out
+		case
+			opAssert:
+			if op.arg == assertBOT && len(r) == 0 {
+				ip = op.out
+				break
+			}
+
+			break loop
+		case
+			opAssertEOT,
+			opCharClass,
+			opDot,
+			opDotNL,
+			opNotCharClass,
+			opSplit:
+
+			break loop
+		}
+	}
+	re.prefix = string(r)
+	re.complete = false
+	return re
 }
 
 func (re *Regexp) optimize() *Regexp {
