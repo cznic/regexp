@@ -7,6 +7,7 @@ package regexp
 import (
 	"fmt"
 	"path"
+	"regexp/syntax"
 	"runtime"
 	"unicode"
 	"unicode/utf8"
@@ -16,12 +17,6 @@ const (
 	eof = -(iota + 1)
 	pastEOF
 	bot
-)
-
-const (
-	flagI = 1 << iota // Case-insensitive (default false).
-	flagM             // Multi-line mode: ^ and $ match begin/end line in addition to begin/end text (default false).
-	flagS             // Let . match \n (default false).
 )
 
 var (
@@ -34,11 +29,17 @@ type parser struct {
 	sz        int
 	re        *Regexp
 	src       string
-	flags     int
-	flagStack []int
+	flags     syntax.Flags
+	flagStack []syntax.Flags
 }
 
-func newParser(src string, re *Regexp) *parser { return &parser{re: re, src: src} }
+func newParser(src string, re *Regexp) *parser {
+	return &parser{
+		flags: syntax.OneLine,
+		re:    re,
+		src:   src,
+	}
+}
 
 func (p *parser) reset() {
 	p.pos = 0
@@ -142,7 +143,7 @@ func (p *parser) factor(capturingGroup bool) (in, out int) {
 	case '.':
 		p.n()
 		switch {
-		case p.flags&flagS != 0:
+		case p.flags&syntax.DotNL != 0:
 			in = p.re.addState(instr{kind: opDotNL})
 		default:
 			in = p.re.addState(instr{kind: opDot})
@@ -154,7 +155,12 @@ func (p *parser) factor(capturingGroup bool) (in, out int) {
 		out = in
 	case '$':
 		p.n()
-		in = p.re.addState(instr{kind: opAssertEOT})
+		switch {
+		case p.flags&syntax.OneLine != 0:
+			in = p.re.addState(instr{kind: opAssert, arg: assertEOT})
+		default:
+			in = p.re.addState(instr{kind: opAssert, arg: assertEOTMulitline})
+		}
 		out = in
 	case '(':
 		p.n()
@@ -304,7 +310,7 @@ func (p *parser) factor(capturingGroup bool) (in, out int) {
 	}
 }
 
-func (p *parser) pushFlags(newFlags int) {
+func (p *parser) pushFlags(newFlags syntax.Flags) {
 	p.flagStack = append(p.flagStack, p.flags)
 	p.flags = newFlags
 }
@@ -331,25 +337,33 @@ func (p *parser) parseFlags() (restore bool) {
 			p.n()
 			switch {
 			case minus:
-				flags &^= flagI
+				flags &^= syntax.FoldCase
 			default:
-				flags |= flagI
+				flags |= syntax.FoldCase
 			}
 		case 'm':
 			p.n()
 			switch {
 			case minus:
-				flags &^= flagM
+				flags |= syntax.OneLine
 			default:
-				flags |= flagM
+				flags &^= syntax.OneLine
 			}
 		case 's':
 			p.n()
 			switch {
 			case minus:
-				flags &^= flagS
+				flags &^= syntax.DotNL
 			default:
-				flags |= flagS
+				flags |= syntax.DotNL
+			}
+		case 'U':
+			p.n()
+			switch {
+			case minus:
+				flags &^= syntax.NonGreedy
+			default:
+				flags |= syntax.NonGreedy
 			}
 		case ':':
 			p.n()

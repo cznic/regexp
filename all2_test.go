@@ -659,9 +659,6 @@ func (re *Regexp) str(start int) string {
 			}
 			sa[s] = fmt.Sprintf("%s %d\t%s\t%d", p, s, ss, state.out)
 			f(state.out)
-		case opAssertEOT:
-			sa[s] = fmt.Sprintf("%s %d\t$\t%d", p, s, state.out)
-			f(state.out)
 		case opDot:
 			sa[s] = fmt.Sprintf("%s %d\t.\t%d", p, s, state.out)
 			f(state.out)
@@ -735,7 +732,6 @@ func (re *Regexp) checkInvariants(s int) {
 		case
 			opAccept,
 			opAssert,
-			opAssertEOT,
 			opChar,
 			opCharClass,
 			opDot,

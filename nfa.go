@@ -4,6 +4,10 @@
 
 package regexp
 
+import (
+	"sync"
+)
+
 type instr struct {
 	kind opcode
 	arg  int
@@ -21,6 +25,8 @@ type Regexp struct {
 	complete   bool // Prefix is the whole re.
 	groupNames []string
 	groups     int
+	longest    bool // See .Longest()
+	longestMu  *sync.Mutex
 	prefix     string // Any match must start with this literal.
 	prog       []instr
 	regs       []int
@@ -31,6 +37,7 @@ type Regexp struct {
 
 func newRegexp(src string) *Regexp {
 	return &Regexp{
+		longestMu:  &sync.Mutex{},
 		groupNames: []string{""},
 		src:        src,
 	}
@@ -58,29 +65,21 @@ func (re *Regexp) getPrefix() *Regexp {
 	var r []rune
 loop:
 	for ip := re.start; ; {
-		switch op := re.prog[ip]; op.kind {
+		op := re.prog[ip]
+		switch op.kind {
 		case opAccept:
 			re.prefix = string(r)
 			re.complete = true
 			return re
 		case opChar:
 			r = append(r, rune(op.arg))
-			ip = op.out
 		case
 			opNop,
 			opSave:
-			// ok
-			ip = op.out
-		case
-			opAssert:
-			if op.arg == assertBOT && len(r) == 0 {
-				ip = op.out
-				break
-			}
 
-			break loop
+			// ok
 		case
-			opAssertEOT,
+			opAssert,
 			opCharClass,
 			opDot,
 			opDotNL,
@@ -89,6 +88,7 @@ loop:
 
 			break loop
 		}
+		ip = op.out
 	}
 	re.prefix = string(r)
 	re.complete = false
@@ -107,7 +107,6 @@ func (re *Regexp) optimize() *Regexp {
 			// nop
 		case
 			opAssert,
-			opAssertEOT,
 			opChar,
 			opCharClass,
 			opDot,
@@ -145,7 +144,6 @@ func (re *Regexp) reachable(in, out int) []int {
 		switch p := &re.prog[s]; p.kind {
 		case
 			opAssert,
-			opAssertEOT,
 			opChar,
 			opCharClass,
 			opDot,

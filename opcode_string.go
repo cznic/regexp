@@ -4,9 +4,9 @@ package regexp
 
 import "fmt"
 
-const _opcode_name = "opAcceptopAssertopAssertEOTopCharopCharClassopDotopDotNLopNotCharClassopNopopSaveopSplit"
+const _opcode_name = "opAcceptopAssertopCharopCharClassopDotopDotNLopNotCharClassopNopopSaveopSplit"
 
-var _opcode_index = [...]uint8{0, 8, 16, 27, 33, 44, 49, 56, 70, 75, 81, 88}
+var _opcode_index = [...]uint8{0, 8, 16, 22, 33, 38, 45, 59, 64, 70, 77}
 
 func (i opcode) String() string {
 	if i < 0 || i >= opcode(len(_opcode_index)-1) {

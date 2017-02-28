@@ -9,7 +9,6 @@ type opcode int
 const (
 	opAccept opcode = iota
 	opAssert
-	opAssertEOT
 	opChar
 	opCharClass
 	opDot

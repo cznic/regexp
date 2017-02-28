@@ -6,15 +6,17 @@
 
 package regexp
 
-//TODO import (
-//TODO 	"testing"
-//TODO )
-//TODO
-//TODO // This test is excluded when running under the race detector because
-//TODO // it is a very expensive test and takes too long.
-//TODO func TestRE2Exhaustive(t *testing.T) {
-//TODO 	if testing.Short() {
-//TODO 		t.Skip("skipping TestRE2Exhaustive during short test")
-//TODO 	}
-//TODO 	testRE2(t, "testdata/re2-exhaustive.txt.bz2")
-//TODO }
+import (
+	"path/filepath"
+	"runtime"
+	"testing"
+)
+
+// This test is excluded when running under the race detector because
+// it is a very expensive test and takes too long.
+func TestRE2Exhaustive(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping TestRE2Exhaustive during short test")
+	}
+	testRE2(t, filepath.Join(runtime.GOROOT(), filepath.FromSlash("src/regexp/testdata/re2-exhaustive.txt.bz2")))
+}

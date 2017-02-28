@@ -151,14 +151,10 @@ func (vm *vm) step(clist *threadList, nlist *threadList) {
 			// nop
 		case opAssert:
 			switch op.arg {
-			case assertB, assertNotB, assertBOT, assertEOT:
+			case assertB, assertNotB, assertBOT, assertEOT, assertEOTMulitline:
 				if asserts[op.arg](vm.first, vm.last, vm.c) {
 					vm.addThread(nlist, thread{op.out, t.saved}, vm.pos)
 				}
-			}
-		case opAssertEOT:
-			if vm.c == eof {
-				vm.addThread(nlist, thread{op.out, t.saved}, vm.pos)
 			}
 		case opChar:
 			if vm.c == rune(op.arg) {
@@ -213,8 +209,6 @@ func (vm *vm) addThread(list *threadList, t thread, pos int) {
 		if asserts[op.arg](vm.first, vm.last, vm.c) {
 			vm.addThread(list, thread{op.out, t.saved}, pos)
 		}
-	case opAssertEOT:
-		// nop
 	case opChar:
 		// nop
 	case opCharClass:
@@ -266,6 +260,7 @@ const (
 	assertBOT
 	assertD
 	assertEOT
+	assertEOTMulitline
 	assertNotB
 	assertNotD
 	assertNotS
@@ -276,55 +271,52 @@ const (
 
 var (
 	asserts = map[int]func(bool, rune, rune) bool{
-		assertB:    isB,
-		assertBOT:  isBOT,
-		assertD:    isD,
-		assertEOT:  isEOT,
-		assertNotB: isNotB,
-		assertNotD: isNotD,
-		assertNotS: isNotS,
-		assertNotW: isNotW,
-		assertS:    isS,
-		assertW:    isW,
+		assertB:            isB,
+		assertBOT:          isBOT,
+		assertD:            isD,
+		assertEOT:          isEOT,
+		assertEOTMulitline: isEOTMultiline,
+		assertNotB:         isNotB,
+		assertNotD:         isNotD,
+		assertNotS:         isNotS,
+		assertNotW:         isNotW,
+		assertS:            isS,
+		assertW:            isW,
 	}
 
 	assertString = map[int]string{
-		assertB:    "\\b",
-		assertBOT:  "\\A",
-		assertD:    "\\d",
-		assertEOT:  "\\z",
-		assertNotB: "\\B",
-		assertNotD: "\\D",
-		assertNotS: "\\S",
-		assertNotW: "\\W",
-		assertS:    "\\s",
-		assertW:    "\\w",
+		assertB:            "\\b",
+		assertBOT:          "\\A",
+		assertD:            "\\d",
+		assertEOT:          "\\z",
+		assertEOTMulitline: "(?m:$)",
+		assertNotB:         "\\B",
+		assertNotD:         "\\D",
+		assertNotS:         "\\S",
+		assertNotW:         "\\W",
+		assertS:            "\\s",
+		assertW:            "\\w",
 	}
 )
 
-func isB(_ bool, last, c rune) (r bool) {
+func isBOT(first bool, last, c rune) bool          { return first }
+func isD(first bool, last, c rune) bool            { return c >= '0' && c <= '9' }
+func isEOT(first bool, last, c rune) bool          { return c == eof }
+func isEOTMultiline(first bool, last, c rune) bool { return c == eof || c == '\n' }
+func isNotB(first bool, last, c rune) bool         { return !isB(false, last, c) }
+func isNotD(first bool, last, c rune) bool         { return !isD(false, -1, c) }
+func isNotS(first bool, last, c rune) bool         { return !isS(false, -1, c) }
+func isNotW(first bool, last, c rune) bool         { return !isW(false, -1, c) }
+
+func isB(first bool, last, c rune) (r bool) {
 	return isW(false, -1, last) && (isEOT(false, -1, c) || isNotW(false, -1, c)) ||
 		isW(false, -1, c) && (last == bot || isNotW(false, -1, last))
 }
 
-func isNotB(first bool, last, c rune) bool {
-	return !isB(false, last, c)
-}
-
-func isBOT(first bool, _, _ rune) bool { return first }
-
-func isD(_ bool, _, c rune) bool    { return c >= '0' && c <= '9' }
-func isNotD(_ bool, _, c rune) bool { return !isD(false, -1, c) }
-
-func isEOT(_ bool, _, c rune) bool { return c == eof }
-
-func isS(_ bool, _, c rune) bool {
+func isS(first bool, last, c rune) bool {
 	return c == ' ' || c == '\t' || c == '\n' || c == '\f' || c == '\r'
 }
-func isNotS(_ bool, _, c rune) bool { return !isS(false, -1, c) }
 
-func isW(_ bool, _, c rune) bool {
+func isW(first bool, last, c rune) bool {
 	return c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' || c >= 'c' && c <= 'z' || c == '_'
 }
-
-func isNotW(_ bool, _, c rune) bool { return !isW(false, -1, c) }

@@ -6,7 +6,7 @@ package regexp
 
 import (
 	"reflect"
-	//TODO "regexp/syntax"
+	"regexp/syntax"
 	"strings"
 	"testing"
 )
@@ -363,11 +363,11 @@ var literalPrefixTests = []MetaTest{
 	// See golang.org/issue/11175.
 	// output is unused.
 	{`^0^0$`, ``, `0`, false},
-	//TODO {`^0^`, ``, ``, false},
-	//TODO {`^0$`, ``, `0`, true},
+	{`^0^`, ``, ``, false},
+	{`^0$`, ``, `0`, true},
 	{`$0^`, ``, ``, false},
 	{`$0$`, ``, ``, false},
-	//TODO {`^^0$$`, ``, ``, false},
+	{`^^0$$`, ``, ``, false},
 	{`^$^$`, ``, ``, false},
 	{`$$0^^`, ``, ``, false},
 }
@@ -407,11 +407,30 @@ func TestLiteralPrefix(t *testing.T) {
 		// Literal method needs to scan the pattern.
 		re := MustCompile(tc.pattern)
 		str, complete := re.LiteralPrefix()
-		if complete != tc.isLiteral {
-			t.Errorf("LiteralPrefix(`%s`) = %t; want %t", tc.pattern, complete, tc.isLiteral)
+
+		// Data in literalPrefixTests do not agree with syntax.Prog.Prefix(), but we do.
+		//
+		// if complete != tc.isLiteral {
+		// 	t.Errorf("LiteralPrefix(`%s`) = %t; want %t", tc.pattern, complete, tc.isLiteral)
+		// }
+		// if str != tc.literal {
+		// 	t.Errorf("LiteralPrefix(`%s`) = `%s`; want `%s`", tc.pattern, str, tc.literal)
+		// }
+
+		re2, err := syntax.Parse(tc.pattern, 0)
+		if err != nil {
+			t.Fatal("syntax.Parse: %v", err)
 		}
-		if str != tc.literal {
-			t.Errorf("LiteralPrefix(`%s`) = `%s`; want `%s`", tc.pattern, str, tc.literal)
+		prog, err := syntax.Compile(re2)
+		if err != nil {
+			t.Fatal("syntax.Compile: %v", err)
+		}
+		str2, complete2 := prog.Prefix()
+		if complete != complete2 {
+			t.Errorf("LiteralPrefix(`%s`) = %t; want %t", tc.pattern, complete, complete2)
+		}
+		if str != str2 {
+			t.Errorf("LiteralPrefix(`%s`) = `%s`; want `%s`", tc.pattern, str, str2)
 		}
 	}
 }
@@ -512,46 +531,46 @@ func TestSplit(t *testing.T) {
 	}
 }
 
-//TODO // The following sequence of Match calls used to panic. See issue #12980.
-//TODO func TestParseAndCompile(t *testing.T) {
-//TODO 	expr := "a$"
-//TODO 	s := "a\nb"
-//TODO
-//TODO 	for i, tc := range []struct {
-//TODO 		reFlags  syntax.Flags
-//TODO 		expMatch bool
-//TODO 	}{
-//TODO 		{syntax.Perl | syntax.OneLine, false},
-//TODO 		{syntax.Perl &^ syntax.OneLine, true},
-//TODO 	} {
-//TODO 		parsed, err := syntax.Parse(expr, tc.reFlags)
-//TODO 		if err != nil {
-//TODO 			t.Fatalf("%d: parse: %v", i, err)
-//TODO 		}
-//TODO 		re, err := Compile(parsed.String())
-//TODO 		if err != nil {
-//TODO 			t.Fatalf("%d: compile: %v", i, err)
-//TODO 		}
-//TODO 		if match := re.MatchString(s); match != tc.expMatch {
-//TODO 			t.Errorf("%d: %q.MatchString(%q)=%t; expected=%t", i, re, s, match, tc.expMatch)
-//TODO 		}
-//TODO 	}
-//TODO }
+// The following sequence of Match calls used to panic. See issue #12980.
+func TestParseAndCompile(t *testing.T) {
+	expr := "a$"
+	s := "a\nb"
 
-//TODO // Check that one-pass cutoff does trigger.
-//TODO func TestOnePassCutoff(t *testing.T) {
-//TODO 	re, err := syntax.Parse(`^x{1,1000}y{1,1000}$`, syntax.Perl)
-//TODO 	if err != nil {
-//TODO 		t.Fatalf("parse: %v", err)
-//TODO 	}
-//TODO 	p, err := syntax.Compile(re.Simplify())
-//TODO 	if err != nil {
-//TODO 		t.Fatalf("compile: %v", err)
-//TODO 	}
-//TODO 	if compileOnePass(p) != notOnePass {
-//TODO 		t.Fatalf("makeOnePass succeeded; wanted notOnePass")
-//TODO 	}
-//TODO }
+	for i, tc := range []struct {
+		reFlags  syntax.Flags
+		expMatch bool
+	}{
+		{syntax.Perl | syntax.OneLine, false},
+		{syntax.Perl &^ syntax.OneLine, true},
+	} {
+		parsed, err := syntax.Parse(expr, tc.reFlags)
+		if err != nil {
+			t.Fatalf("%d: parse: %v", i, err)
+		}
+		re, err := Compile(parsed.String())
+		if err != nil {
+			t.Fatalf("%d: compile: %v", i, err)
+		}
+		if match := re.MatchString(s); match != tc.expMatch {
+			t.Errorf("%d: %q.MatchString(%q)=%t; expected=%t", i, re, s, match, tc.expMatch)
+		}
+	}
+}
+
+// Check that one-pass cutoff does trigger.
+func TestOnePassCutoff(t *testing.T) {
+	re, err := syntax.Parse(`^x{1,1000}y{1,1000}$`, syntax.Perl)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	_, err = syntax.Compile(re.Simplify())
+	if err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+	// N/A if compileOnePass(p) != notOnePass {
+	// N/A 	t.Fatalf("makeOnePass succeeded; wanted notOnePass")
+	// N/A }
+}
 
 // Check that the same machine can be used with the standard matcher
 // and then the backtracker when there are no captures.

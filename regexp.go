@@ -76,7 +76,10 @@ package regexp
 import (
 	"bytes"
 	"io"
+	"regexp/syntax"
+	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 	"unicode/utf8"
 
@@ -84,9 +87,21 @@ import (
 )
 
 const (
-	maxRepCount = 1000 // Prevent x{1001}.
-	maxProg     = 1e4  // Prevent x{1000}{1000}.
+	maxBacktrackVector = 256 * 1024
+	maxProg            = 1e4  // Prevent x{1000}{1000}.
+	maxRepCount        = 1000 // Prevent x{1001}.
 )
+
+func compile(expr string, mode syntax.Flags, longest bool) (*Regexp, error) {
+	p := newParser(expr, newRegexp(expr))
+	re, err := p.parse()
+	if err != nil {
+		return nil, err
+	}
+
+	re.longest = longest
+	return re, nil
+}
 
 // Compile parses a regular expression and returns, if successful, a Regexp
 // object that can be used to match against text.
@@ -97,15 +112,28 @@ const (
 // matching is the same semantics that Perl, Python, and other implementations
 // use, although this package implements it without the expense of
 // backtracking. For POSIX leftmost-longest matching, see CompilePOSIX.
-func Compile(expr string) (*Regexp, error) {
-	p := newParser(expr, newRegexp(expr))
-	re, err := p.parse()
-	if err != nil {
-		return nil, err
-	}
+func Compile(expr string) (*Regexp, error) { return compile(expr, syntax.Perl, false) }
 
-	return re, nil
-}
+// CompilePOSIX is like Compile but restricts the regular expression
+// to POSIX ERE (egrep) syntax and changes the match semantics to
+// leftmost-longest.
+//
+// That is, when matching against text, the regexp returns a match that
+// begins as early as possible in the input (leftmost), and among those
+// it chooses a match that is as long as possible.
+// This so-called leftmost-longest matching is the same semantics
+// that early regular expression implementations used and that POSIX
+// specifies.
+//
+// However, there can be multiple leftmost-longest matches, with different
+// submatch choices, and here this package diverges from POSIX.
+// Among the possible leftmost-longest matches, this package chooses
+// the one that a backtracking search would have found first, while POSIX
+// specifies that the match be chosen to maximize the length of the first
+// subexpression, then the second, and so on from left to right.
+// The POSIX rule is computationally prohibitive and not even well-defined.
+// See http://swtch.com/~rsc/regexp/regexp2.html#posix for details.
+func CompilePOSIX(expr string) (*Regexp, error) { return compile(expr, syntax.POSIX, false) }
 
 // MatchString checks whether a textual regular expression matches a string.
 // More complicated queries need to use Compile and the full Regexp interface.
@@ -118,12 +146,25 @@ func MatchString(pattern string, s string) (matched bool, err error) {
 	return re.MatchString(s), nil
 }
 
+// Longest makes future searches prefer the leftmost-longest match.
+// That is, when matching against text, the regexp returns a match that
+// begins as early as possible in the input (leftmost), and among those
+// it chooses a match that is as long as possible.
+func (re *Regexp) Longest() {
+	re.longestMu.Lock()
+	re.longest = true
+	re.longestMu.Unlock()
+}
+
 // Copy returns a new Regexp object copied from re.
 //
-// Copy is included only for API compatibility with the stdlib regexp package.
-// Regexps produced by this package are never mutated and use no mutexes.
+// When using a Regexp in multiple goroutines, giving each goroutine
+// its own copy helps to avoid lock contention.
 func (re *Regexp) Copy() *Regexp {
+	re.longestMu.Lock()
 	x := *re
+	re.longestMu.Unlock()
+	x.longestMu = &sync.Mutex{}
 	return &x
 }
 
@@ -788,16 +829,33 @@ func (re *Regexp) LiteralPrefix() (prefix string, complete bool) {
 	return re.prefix, re.complete
 }
 
-// MustCompile is like Compile but panics if the expression cannot be parsed.
-// It simplifies safe initialization of global variables holding compiled
-// regular expressions.
-func MustCompile(str string) *Regexp {
-	re, err := Compile(str)
-	if err != nil {
-		panic(err)
+func quote(s string) string {
+	if strconv.CanBackquote(s) {
+		return "`" + s + "`"
 	}
+	return strconv.Quote(s)
+}
 
-	return re
+// MustCompile is like Compile but panics if the expression cannot be parsed.
+// It simplifies safe initialization of global variables holding compiled regular
+// expressions.
+func MustCompile(str string) *Regexp {
+	regexp, error := Compile(str)
+	if error != nil {
+		panic(`regexp: Compile(` + quote(str) + `): ` + error.Error())
+	}
+	return regexp
+}
+
+// MustCompilePOSIX is like CompilePOSIX but panics if the expression cannot be parsed.
+// It simplifies safe initialization of global variables holding compiled regular
+// expressions.
+func MustCompilePOSIX(str string) *Regexp {
+	regexp, error := CompilePOSIX(str)
+	if error != nil {
+		panic(`regexp: CompilePOSIX(` + quote(str) + `): ` + error.Error())
+	}
+	return regexp
 }
 
 var specialBytes = []byte(`\.+*?()|[]{}^$`)
