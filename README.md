@@ -1,9 +1,5 @@
-# regexp
+`github.com/cznic/regexp` has moved to [`modernc.org/regexp`](https://godoc.org/modernc.org/regexp) ([vcs](https://gitlab.com/cznic/regexp)).
 
-Package regexp implements regular expression search. (Work In Progress)
+Please update your import paths to `modernc.org/regexp`.
 
-Installation
-
-    $ go get github.com/cznic/regexp
-
-Documentation: [godoc.org/github.com/cznic/regexp](http://godoc.org/github.com/cznic/regexp)
+This repo is now archived.
